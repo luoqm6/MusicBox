@@ -136,7 +136,6 @@ public class MusicServer extends Service {
             ex.printStackTrace();
         }
     }
-
     public MediaPlayer getMediaPlayer(){
         return mediaPlayer;
     }

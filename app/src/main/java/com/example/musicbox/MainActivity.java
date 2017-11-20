@@ -78,11 +78,11 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("service","connect");
                 ms = ((MusicServer.MyBinder) service).getService();
                 mBinder = service;
-                totalTime.setText(time.format(ms.getMediaPlayer().getDuration()));
-                if(ms.getMediaPlayer()!=null){//TODO 记住要加
-                    seekBar.setProgress(ms.getMediaPlayer().getCurrentPosition());
-                    seekBar.setMax(ms.getMediaPlayer().getDuration());
-                }
+//                totalTime.setText(time.format(ms.getMediaPlayer().getDuration()));
+//                if(ms.getMediaPlayer()!=null){//TODO 记住要加
+//                    seekBar.setProgress(ms.getMediaPlayer().getCurrentPosition());
+//                    seekBar.setMax(ms.getMediaPlayer().getDuration());
+//                }
             }
             @Override
             public void onServiceDisconnected(ComponentName name) {
@@ -99,7 +99,9 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-        //
+        //m.	在MainActivity中实例化Handler对象mHandler并且重写handleMessage函数，根据在后面新建
+        // 的线程中传入的信息msg判断是否为123，是的话调用后面定义的update函数来更新主界面中seebar
+        // 的进度、设置相应按钮和文字信息，以及图片的旋转
         final Handler mHandler = new Handler(){
             @Override
             public void  handleMessage(Message msg){
@@ -127,6 +129,9 @@ public class MainActivity extends AppCompatActivity {
 //        }catch (RemoteException e){
 //            e.printStackTrace();
 //        }
+
+                totalTime.setText(time.format(ms.getMediaPlayer().getDuration()));
+                seekBar.setMax(ms.getMediaPlayer().getDuration());
                 currentTime.setText(time.format(ms.getMediaPlayer().getCurrentPosition()));
                 seekBar.setProgress(ms.getMediaPlayer().getCurrentPosition());
                 if(ms.getMediaPlayer().isPlaying()){
@@ -148,7 +153,8 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
-        //定义一个新的线程
+        //n.	自定义一个新的线程mThread，在run函数中向mHandler发送信息123，mHandler通过调用update
+        // 函数对界面进行更新，最后记得要调用mThread.start()开启线程
         final Thread mThread = new Thread(){
             @Override
             public void run(){
@@ -223,8 +229,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-
-
         quit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -276,13 +280,10 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         mThread.start();
-
     }
     @Override
     public void onDestroy() {
         // TODO Auto-generated method stub
          super.onDestroy();
-//        mHandler.removeCallbacks(mThread);
-//        ms.getMediaPlayer().release();
     }
 }
