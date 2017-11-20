@@ -99,6 +99,7 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+        //
         final Handler mHandler = new Handler(){
             @Override
             public void  handleMessage(Message msg){
@@ -163,7 +164,8 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         };
-
+        // 播放和暂停按键的点击事件的重载，对界面的按键以及提示文字重新设置和开始/暂停图片的旋
+        // 转，同时设置code为101并调用mBinder中的transact函数，通知Service播放/暂停歌曲
         play.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -200,7 +202,8 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-
+        //j.	停止按键的点击监听器的重载，设置按钮、相应文字以及停止图像选择，同时设置code为102并
+        // 调用mBinder中的transact函数，通知Service停止播放歌曲
         stop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -220,6 +223,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
 
         quit.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -254,7 +258,6 @@ public class MainActivity extends AppCompatActivity {
                         int code = 105;
                         int [] Time = new int [2];
                         currentTime.setText(time.format(seekBar.getProgress()));
-                        //Toast.makeText(getApplicationContext(), String.valueOf(seekBar.getProgress()), Toast.LENGTH_SHORT).show();
                         Parcel data = Parcel.obtain();
                         Parcel reply = Parcel.obtain();
                         Time[0]=seekBar.getProgress();
@@ -264,7 +267,6 @@ public class MainActivity extends AppCompatActivity {
                         e.printStackTrace();
                     }
                 }
-
             }
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {

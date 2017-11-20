@@ -15,7 +15,6 @@ import android.os.RemoteException;
 public class MusicServer extends Service {
 
     private MediaPlayer mediaPlayer;
-    private int message;
     private IBinder mBinder = new MyBinder();
     private boolean isStop = false;
 
@@ -24,15 +23,12 @@ public class MusicServer extends Service {
         // TODO Auto-generated method stub
         return mBinder;
     }
-
-
     @Override
     public void onStart(Intent intent, int startId) {
         super.onStart(intent, startId);
         if(mediaPlayer==null){
             initMediaPlayer();
         }
-
     }
     @Override
     public void onDestroy() {
@@ -56,9 +52,15 @@ public class MusicServer extends Service {
     public void stop(){
         if(mediaPlayer!=null){
             try{
-                mediaPlayer.reset();//TODO 为什么不能用stop
+//                mediaPlayer.reset();//TODO 为什么不能用stop
+//                mediaPlayer = MediaPlayer.create(this, R.raw.melt);
+//                //mediaPlayer.setDataSource("/melt.mp3");
+//                mediaPlayer.setLooping(true);
+//                mediaPlayer.seekTo(0);
+//                isStop=true;
+                mediaPlayer.stop();//TODO 仿佛又可以用stop
                 mediaPlayer = MediaPlayer.create(this, R.raw.melt);
-                mediaPlayer.prepare();
+                //mediaPlayer.setDataSource("/melt.mp3");
                 mediaPlayer.setLooping(true);
                 mediaPlayer.seekTo(0);
                 isStop=true;
@@ -82,6 +84,10 @@ public class MusicServer extends Service {
 //    public void scrollbar(){
 //        //TODO scrollbar
 //    }
+
+    //c.	在MusicServer类中定义自己的继承于Binder的MyBinder类，用于当前类与MainActivity之间的相互
+    // 通信，其中当MainActivity中设置code值后调用Binder.transact函数的时候会根据transact参数中code
+    // 的值做对应的操作
     public class MyBinder extends Binder{
         @Override
         protected boolean onTransact(int code , Parcel data,Parcel reply,int flags) throws RemoteException{
@@ -118,7 +124,6 @@ public class MusicServer extends Service {
         MusicServer getService(){
             return MusicServer.this;
         }
-
     }
     public void initMediaPlayer(){
         try{
