@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">MusicBox</string>
+    <string name="play">PLAY</string>
+    <string name="paused">PAUSED</string>
+    <string name="stop">STOP</string>
+    <string name="quit">QUIT</string>
+    <string name="Playing">Playing</string>
+    <string name="Paused">Paused</string>
+    <string name="Stopped">Stopped</string>
+</resources>
