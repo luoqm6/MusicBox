@@ -64,6 +64,9 @@ public class MainActivity extends AppCompatActivity {
         seekBar = (AppCompatSeekBar) findViewById(R.id.seekBar);
         //设置背景图旋转
         final ObjectAnimator animator = ObjectAnimator.ofFloat(imageView, "rotation", 0f, 360.0f);
+        animator.setDuration(10000);
+        animator.setInterpolator(new LinearInterpolator());
+        animator.setRepeatCount(-1);
 
         isPlaying = false;
         time = new SimpleDateFormat("mm:ss");
@@ -93,9 +96,7 @@ public class MainActivity extends AppCompatActivity {
         bindService(intent,sc, Context.BIND_AUTO_CREATE);
 
 
-        animator.setDuration(10000);
-        animator.setInterpolator(new LinearInterpolator());
-        animator.setRepeatCount(-1);
+
 
 
         final Handler mHandler = new Handler(){

@@ -34,7 +34,6 @@ public class MusicServer extends Service {
         }
 
     }
-
     @Override
     public void onDestroy() {
         // TODO Auto-generated method stub
