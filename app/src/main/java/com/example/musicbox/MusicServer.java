@@ -5,30 +5,46 @@ package com.example.musicbox;
  */
 
 import android.app.Service;
+import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.media.MediaPlayer;
 import android.os.Binder;
+import android.os.Environment;
 import android.os.IBinder;
 import android.os.Parcel;
 import android.os.RemoteException;
+import android.provider.MediaStore;
+
+import java.io.File;
 
 public class MusicServer extends Service {
 
-    private MediaPlayer mediaPlayer;
+    private MediaPlayer mediaPlayer = new MediaPlayer();
     private IBinder mBinder = new MyBinder();
     private boolean isStop = false;
+    private Cursor cursor;
+    private Context mContext;
+    ContentResolver contentResolver;
+    String[] projection = new String[]{MediaStore.Video.Media.TITLE};
 
     @Override
     public IBinder onBind(Intent intent) {
         // TODO Auto-generated method stub
+        initMediaPlayer();
         return mBinder;
     }
+
     @Override
     public void onStart(Intent intent, int startId) {
         super.onStart(intent, startId);
-        if(mediaPlayer==null){
-            initMediaPlayer();
-        }
+        initMediaPlayer();
+    }
+    @Override
+    public int onStartCommand(Intent intent,int flags,int startId){
+        initMediaPlayer();
+        return Service.START_STICKY;
     }
     @Override
     public void onDestroy() {
@@ -52,15 +68,18 @@ public class MusicServer extends Service {
     public void stop(){
         if(mediaPlayer!=null){
             try{
+
 //                mediaPlayer.reset();//TODO 为什么不能用stop
 //                mediaPlayer = MediaPlayer.create(this, R.raw.melt);
-//                //mediaPlayer.setDataSource("/melt.mp3");
+//                //mediaPlayer.setDataSource("/data/melt.mp3");
 //                mediaPlayer.setLooping(true);
 //                mediaPlayer.seekTo(0);
 //                isStop=true;
                 mediaPlayer.stop();//TODO 仿佛又可以用stop
-                mediaPlayer = MediaPlayer.create(this, R.raw.melt);
-                //mediaPlayer.setDataSource("/melt.mp3");
+                mediaPlayer.reset();
+                //mediaPlayer = MediaPlayer.create(this, R.raw.melt);
+                mediaPlayer.setDataSource(Environment.getExternalStorageDirectory().getPath()+ File.separator+"melt.mp3");
+                mediaPlayer.prepare();
                 mediaPlayer.setLooping(true);
                 mediaPlayer.seekTo(0);
                 isStop=true;
@@ -91,7 +110,8 @@ public class MusicServer extends Service {
     public class MyBinder extends Binder{
         @Override
         protected boolean onTransact(int code , Parcel data,Parcel reply,int flags) throws RemoteException{
-            int [] Time = new int[2];
+            int curTime;
+            int maxTime;
             switch (code){
                 case 101:
                     //播放按钮服务处理函数
@@ -107,16 +127,23 @@ public class MusicServer extends Service {
                     break;
                 case 104:
                     //界面刷新，服务返回数据处理函数
-                    Time[0]=mediaPlayer.getCurrentPosition();
-                    Time[1]=mediaPlayer.getDuration();
-                    reply.writeIntArray(Time);
-                    transact(code,data,reply,0);
+                    int isplaying;
+                    if(mediaPlayer.isPlaying()) {
+                        isplaying=1;
+                    }else{
+                        isplaying=0;
+                    }
+                    curTime=mediaPlayer.getCurrentPosition();
+                    maxTime=mediaPlayer.getDuration();
+                    reply.writeInt(curTime);
+                    reply.writeInt(maxTime);
+                    reply.writeInt(isplaying);
                     break;
                 case 105:
                     //拖动进度条服务处理函数
                     //scrollbar();
-                    data.readIntArray(Time);
-                    mediaPlayer.seekTo(Time[0]);
+                    maxTime=data.readInt();
+                    mediaPlayer.seekTo(maxTime);
                     break;
             }
             return super.onTransact(code,data,reply,flags);
@@ -127,11 +154,10 @@ public class MusicServer extends Service {
     }
     public void initMediaPlayer(){
         try{
-            // R.raw.melt是资源文件，MP3格式的
-            mediaPlayer = MediaPlayer.create(this, R.raw.melt);
-            //mediaPlayer.setDataSource("/melt.mp3");
+            mediaPlayer.setDataSource(Environment.getExternalStorageDirectory().getPath()+ File.separator+"melt.mp3");
             //TODO 在这里不能加prepare，要不然不能循环
             mediaPlayer.setLooping(true);
+            mediaPlayer.prepare();
         }catch (Exception ex){
             ex.printStackTrace();
         }
@@ -139,4 +165,6 @@ public class MusicServer extends Service {
     public MediaPlayer getMediaPlayer(){
         return mediaPlayer;
     }
+
+
 }

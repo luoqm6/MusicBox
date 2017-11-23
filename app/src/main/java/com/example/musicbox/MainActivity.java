@@ -1,15 +1,20 @@
 package com.example.musicbox;
 
+import android.Manifest;
 import android.animation.ObjectAnimator;
+import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Parcel;
 import android.os.RemoteException;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.AppCompatSeekBar;
@@ -28,6 +33,8 @@ import java.text.SimpleDateFormat;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final int REQUEST = 0;
+    private static boolean hasPermission;
     private Button play;
     private Button stop;
     private Button quit;
@@ -39,12 +46,11 @@ public class MainActivity extends AppCompatActivity {
     private Intent intent;
     private boolean isPlaying;
     private IBinder mBinder;
-    private MusicServer ms;
     private ServiceConnection sc ;
     private SimpleDateFormat time;
-    private boolean hasPermission;
     private boolean isFirstStart = true;
-
+    private int curTime=0;
+    private int maxTime=0;
 
 
 
@@ -70,19 +76,31 @@ public class MainActivity extends AppCompatActivity {
 
         isPlaying = false;
         time = new SimpleDateFormat("mm:ss");
-        hasPermission = true;
+        hasPermission = true;//TODO
+
+        //verifyStoragePermissions(MainActivity.this);
 
         sc = new ServiceConnection() {
             @Override
             public void onServiceConnected(ComponentName name, IBinder service) {
                 Log.d("service","connect");
-                ms = ((MusicServer.MyBinder) service).getService();
                 mBinder = service;
-//                totalTime.setText(time.format(ms.getMediaPlayer().getDuration()));
-//                if(ms.getMediaPlayer()!=null){//TODO 记住要加
-//                    seekBar.setProgress(ms.getMediaPlayer().getCurrentPosition());
-//                    seekBar.setMax(ms.getMediaPlayer().getDuration());
-//                }
+                try{
+                    int code = 104;
+                    Parcel data = Parcel.obtain();
+                    Parcel reply = Parcel.obtain();
+                    mBinder.transact(code,data,reply,0);
+                    reply.setDataPosition(0);
+                    curTime=reply.readInt();
+                    reply.setDataPosition(4);
+                    maxTime=reply.readInt();
+                    totalTime.setText(time.format(maxTime));
+                    currentTime.setText(time.format(curTime));
+                    seekBar.setProgress(curTime);
+                    seekBar.setMax(maxTime);
+                }catch (RemoteException e){
+                    e.printStackTrace();
+                }
             }
             @Override
             public void onServiceDisconnected(ComponentName name) {
@@ -114,27 +132,26 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
             public void update(){
-//        try{
-//            int code = 104;
-//            int [] Time = new int [2];
-//            Parcel data = Parcel.obtain();
-//            Parcel reply = Parcel.obtain();
-//            mBinder.transact(code,data,reply,0);
-//            reply = Parcel.obtain();
-//            reply.readIntArray(Time);
-//            totalTime.setText(time.format(Time[1]));
-//            currentTime.setText(time.format(Time[0]));
-//            seekBar.setProgress(Time[0]);
-//            seekBar.setMax(Time[1]);
-//        }catch (RemoteException e){
-//            e.printStackTrace();
-//        }
-
-                totalTime.setText(time.format(ms.getMediaPlayer().getDuration()));
-                seekBar.setMax(ms.getMediaPlayer().getDuration());
-                currentTime.setText(time.format(ms.getMediaPlayer().getCurrentPosition()));
-                seekBar.setProgress(ms.getMediaPlayer().getCurrentPosition());
-                if(ms.getMediaPlayer().isPlaying()){
+                int isplaying=0;
+                try{
+                    int code = 104;
+                    Parcel data = Parcel.obtain();
+                    Parcel reply = Parcel.obtain();
+                    mBinder.transact(code,data,reply,0);
+                    reply.setDataPosition(0);
+                    curTime=reply.readInt();
+                    reply.setDataPosition(4);
+                    maxTime=reply.readInt();
+                    reply.setDataPosition(8);
+                    isplaying=reply.readInt();
+                    totalTime.setText(time.format(maxTime));
+                    currentTime.setText(time.format(curTime));
+                    seekBar.setProgress(curTime);
+                    seekBar.setMax(maxTime);
+                }catch (RemoteException e){
+                    e.printStackTrace();
+                }
+                if(isplaying==1){
                     play.setText(R.string.paused);
                     state.setText(R.string.Playing);
                     isPlaying=true;
@@ -175,10 +192,6 @@ public class MainActivity extends AppCompatActivity {
         play.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                if(ms.getMediaPlayer()!=null){//TODO 记住要加
-//                    seekBar.setProgress(ms.getMediaPlayer().getCurrentPosition());
-//                    seekBar.setMax(ms.getMediaPlayer().getDuration());
-//                }
                 if(!isPlaying){
                     play.setText(R.string.paused);
                     state.setText(R.string.Playing);
@@ -260,12 +273,12 @@ public class MainActivity extends AppCompatActivity {
                 if(fromUser==true){//TODO 记住要加
                     try{
                         int code = 105;
-                        int [] Time = new int [2];
+                        int  curTime = 0;
                         currentTime.setText(time.format(seekBar.getProgress()));
                         Parcel data = Parcel.obtain();
                         Parcel reply = Parcel.obtain();
-                        Time[0]=seekBar.getProgress();
-                        data.writeIntArray(Time);
+                        curTime=seekBar.getProgress();
+                        data.writeInt(curTime);
                         mBinder.transact(code,data,reply,0);
                     }catch (RemoteException e){
                         e.printStackTrace();
@@ -280,10 +293,47 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         mThread.start();
+
     }
     @Override
     public void onDestroy() {
         // TODO Auto-generated method stub
          super.onDestroy();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        if (requestCode == this.REQUEST) {
+            // 如果用户赋予全选，则执行相应逻辑
+            if (grantResults.length > 0 &&
+                    grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                //权限被用户同意，可以做要做的事情
+                Toast.makeText(getApplicationContext(), "权限被用户同意", Toast.LENGTH_SHORT).show();
+                hasPermission = true;
+            } else {
+                //权限被用户拒绝了，可以提示用户、关闭界面等等。
+                Toast.makeText(getApplicationContext(), "权限被用户拒绝了", Toast.LENGTH_SHORT).show();
+                System.exit(0);
+            }
+        }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        return;
+    }
+
+    public static void verifyStoragePermissions(Activity activity){
+        try{
+            //检测是否有读取的权限
+            int permission = ActivityCompat.checkSelfPermission(activity,
+                    "android.permission.READ_EXTERNAL_STORAGE");
+            if(permission != PackageManager.PERMISSION_GRANTED){
+                //没有读取权限，去申请读取权限，弹出对话框
+                ActivityCompat.requestPermissions(activity,new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST);
+            }
+            else{
+                hasPermission = true;
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 }
