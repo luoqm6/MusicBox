@@ -78,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
         time = new SimpleDateFormat("mm:ss");
         hasPermission = true;//TODO
 
-        //verifyStoragePermissions(MainActivity.this);
+        verifyStoragePermissions(MainActivity.this);
 
         sc = new ServiceConnection() {
             @Override

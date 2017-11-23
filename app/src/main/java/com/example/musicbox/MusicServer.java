@@ -68,17 +68,10 @@ public class MusicServer extends Service {
     public void stop(){
         if(mediaPlayer!=null){
             try{
-
-//                mediaPlayer.reset();//TODO 为什么不能用stop
-//                mediaPlayer = MediaPlayer.create(this, R.raw.melt);
-//                //mediaPlayer.setDataSource("/data/melt.mp3");
-//                mediaPlayer.setLooping(true);
-//                mediaPlayer.seekTo(0);
-//                isStop=true;
-                mediaPlayer.stop();//TODO 仿佛又可以用stop
+                mediaPlayer.stop();
                 mediaPlayer.reset();
-                //mediaPlayer = MediaPlayer.create(this, R.raw.melt);
-                mediaPlayer.setDataSource(Environment.getExternalStorageDirectory().getPath()+ File.separator+"melt.mp3");
+                mediaPlayer.setDataSource(Environment.getExternalStorageDirectory().getPath()
+                        +File.separator+"Music"+ File.separator+"melt.mp3");
                 mediaPlayer.prepare();
                 mediaPlayer.setLooping(true);
                 mediaPlayer.seekTo(0);
@@ -148,14 +141,11 @@ public class MusicServer extends Service {
             }
             return super.onTransact(code,data,reply,flags);
         }
-        MusicServer getService(){
-            return MusicServer.this;
-        }
     }
     public void initMediaPlayer(){
         try{
-            mediaPlayer.setDataSource(Environment.getExternalStorageDirectory().getPath()+ File.separator+"melt.mp3");
-            //TODO 在这里不能加prepare，要不然不能循环
+            mediaPlayer.setDataSource(
+                    Environment.getExternalStorageDirectory().getPath()+File.separator+"Music"+ File.separator+"melt.mp3");
             mediaPlayer.setLooping(true);
             mediaPlayer.prepare();
         }catch (Exception ex){
@@ -165,6 +155,4 @@ public class MusicServer extends Service {
     public MediaPlayer getMediaPlayer(){
         return mediaPlayer;
     }
-
-
 }
